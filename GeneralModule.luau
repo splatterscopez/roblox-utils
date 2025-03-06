@@ -365,7 +365,7 @@ function GeneralModule:GetAverage(NumberTable: { number })
 	return Total / #NumberTable
 end
 
-function GeneralModule:RepeatFunctionForXSecond(Seconds: number, Function: thread, Parameters: { any }, OverrideSafetyWait: boolean?)
+function GeneralModule:RepeatFunctionForXSeconds(Seconds: number, Function: thread, Parameters: { any }, OverrideSafetyWait: boolean?)
     local StartTime = os.clock()
               
     while StartTime + Seconds <= os.clock() do

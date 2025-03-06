@@ -26,12 +26,28 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
 local DebrisFolder = workspace.Debris
+if not DebrisFolder then
+	local NewFolder = instance.new("Folder")
+	NewFolder.Name = "Debris"
+	Newfolder.Parent = workspace
+end
 
 local Storage = ReplicatedStorage.Storage
 local Modules = ReplicatedStorage.Modules
 
 local SharedStorage = Storage.Shared
 local Util = Modules.Util
+
+local BaseEmptyPart = instance.new("Part")
+BaseEmptyPart.CastShadow = false
+BaseEmptyPart.Transparency = 1
+BaseEmptyPart.Size = Vector3.zero
+BaseEmptyPart.EnableFluidForces = false
+BaseEmptyPart.CanCollide = false
+BaseEmptyPart.CanQuery = false
+BaseEmptyPart.CanTouch = false
+BaseEmptyPart.Anchored = true
+BaseEmptyPart.Massless = true
 
 local WorldToGui = require(Util.WorldToGui)
 
@@ -133,7 +149,7 @@ end
 function GeneralModule:CreateEmptyPart(Parent: Instance?)
 	task.synchronize()
 
-	local EmptyPart = SharedStorage.EmptyPart:Clone()
+	local EmptyPart = BaseEmptyPart:Clone()
 	
 	if Parent then EmptyPart.Parent = Parent end
 

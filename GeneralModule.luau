@@ -25,29 +25,17 @@ local StarterGUI = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
-local DebrisFolder = workspace.Debris
+local DebrisFolder = workspace:FindFirstChild("Debris")
+
 if not DebrisFolder then
-	local NewFolder = instance.new("Folder")
+	local NewFolder = Instance.new("Folder")
 	NewFolder.Name = "Debris"
 	Newfolder.Parent = workspace
 end
 
-local Storage = ReplicatedStorage.Storage
 local Modules = ReplicatedStorage.Modules
 
-local SharedStorage = Storage.Shared
 local Util = Modules.Util
-
-local BaseEmptyPart = instance.new("Part")
-BaseEmptyPart.CastShadow = false
-BaseEmptyPart.Transparency = 1
-BaseEmptyPart.Size = Vector3.zero
-BaseEmptyPart.EnableFluidForces = false
-BaseEmptyPart.CanCollide = false
-BaseEmptyPart.CanQuery = false
-BaseEmptyPart.CanTouch = false
-BaseEmptyPart.Anchored = true
-BaseEmptyPart.Massless = true
 
 local WorldToGui = require(Util.WorldToGui)
 
@@ -71,6 +59,17 @@ end
 local RayParams = RaycastParams.new()
 RayParams.FilterDescendantsInstances = { DebrisFolder }
 RayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+local EmptyPart = Instance.new("Part")
+EmptyPart.CastShadow = false
+EmptyPart.Transparency = 1
+EmptyPart.Size = Vector3.zero
+EmptyPart.EnableFluidForces = false
+EmptyPart.CanCollide = false
+EmptyPart.CanQuery = false
+EmptyPart.CanTouch = false
+EmptyPart.Anchored = true
+EmptyPart.Massless = true
 
 function GeneralModule:PickRandomItemFromCachedFolders(Folder: Folder)
 	if not Folder then warn("Cache Function: No folder was passed in!", debug.traceback()) return end
@@ -149,26 +148,26 @@ end
 function GeneralModule:CreateEmptyPart(Parent: Instance?)
 	task.synchronize()
 
-	local EmptyPart = BaseEmptyPart:Clone()
+	local NewEmptyPart = EmptyPart:Clone()
 	
-	if Parent then EmptyPart.Parent = Parent end
+	if Parent then NewEmptyPart.Parent = Parent end
 
 	task.desynchronize()
 
-	return EmptyPart
+	return NewEmptyPart
 end
 
 function GeneralModule:CreateEmptyPartAtPosition(Position: Vector3, Parent: Instance)
 	task.synchronize()
 
-	local EmptyPart = GeneralModule:CreateEmptyPart(nil)
+	local NewEmptyPart = GeneralModule:CreateEmptyPart(nil)
 
-	EmptyPart.Position = Position
-	EmptyPart.Parent = Parent
+	NewEmptyPart.Position = Position
+	NewEmptyPart.Parent = Parent
 
 	task.desynchronize()
 
-	return EmptyPart
+	return NewEmptyPart
 end
 
 function GeneralModule:MarkInstanceForDeletion(Object: Instance | { Object: any }, Time: number) -- silence stupid strict mode error because it wont recognise my tables
@@ -188,11 +187,11 @@ function GeneralModule:MarkInstanceForDeletion(Object: Instance | { Object: any 
 end
 
 function GeneralModule:CreateTemporaryPartAtPosition(Position: Vector3, Parent: Instance, Time: number)
-	local EmptyPart = GeneralModule:CreateEmptyPartAtPosition(Position, Parent)
+	local NewEmptyPart = GeneralModule:CreateEmptyPartAtPosition(Position, Parent)
 
-	GeneralModule:MarkInstanceForDeletion(EmptyPart, Time)
+	GeneralModule:MarkInstanceForDeletion(NewEmptyPart, Time)
 
-	return EmptyPart
+	return NewEmptyPart
 end
 
 function GeneralModule:PlayTemporarySoundAtPosition(Sound: Sound, Position: Vector3)

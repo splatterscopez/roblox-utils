@@ -1,4 +1,4 @@
-i'm probably never going to update this repository, but for what it's worth, i have cleaned up GeneralModule.luau within my games in terms of formatting and game specific functions
+i'm probably never going to update this repository, but for what it's worth, i have cleaned up GeneralModule.luau within my games in terms of formatting and game specific functions\
 don't let this be an indicator of my ability to program / format code, it was just a quick module i made public
 
 ~~utility modules ive made and used for my games~~

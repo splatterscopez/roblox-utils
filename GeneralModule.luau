@@ -4,8 +4,7 @@ local GeneralModule = {}
 
 local CachedFolders = {}
 
-local ClientVars = {}
-local ServerVars = {}
+local ContextVars = {}
 
 local DefaultPrint = print
 local DefaultWarn = warn
@@ -22,7 +21,6 @@ end
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local StarterGUI = game:GetService("StarterGui")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 
 local DebrisFolder = workspace:FindFirstChild("Debris")
@@ -33,27 +31,13 @@ if not DebrisFolder then
 	Newfolder.Parent = workspace
 end
 
-local Modules = ReplicatedStorage.Modules
-
-local Util = Modules.Util
-
-local WorldToGui = require(Util.WorldToGui)
-
 local Rand = Random.new()
 
 local IsClient = RunService:IsClient()
 
 if IsClient then
-	ClientVars.LocalPlayer = Players.LocalPlayer
-	ClientVars.Camera = workspace.CurrentCamera
-
-	ClientVars.Events = ReplicatedStorage.Events
-	ClientVars.ClientEvents = ClientVars.Events.ClientEvents
-else
-	ServerVars.ServerScriptService = game:GetService("ServerScriptService")
-	ServerVars.ServerStorage = game:GetService("ServerStorage")
-
-	ServerVars.ServerEvents = ServerVars.ServerScriptService.ServerEvents
+	ContextVars.LocalPlayer = Players.LocalPlayer
+	ContextVars.Camera = workspace.CurrentCamera
 end
 
 local RayParams = RaycastParams.new()
@@ -122,17 +106,17 @@ function GeneralModule:DistanceFromCharacter(Player: Player | Model | Actor, Vec
 end
 
 function GeneralModule:DistanceFromLocalPlayer(Vector: Vector3 | BasePart)
-	if not RunService:IsClient() then warn("Wth are U doing ?") return -1 end
-	if not ClientVars.LocalPlayer.Character then return -1 end
+	if not RunService:IsClient() then warn("Attempt to use GeneralModule:DistanceFromLocalPlayer() as server!") return -1 end
+	if not ContextVars.LocalPlayer.Character then return -1 end
 
-	return GeneralModule:DistanceFromCharacter(ClientVars.LocalPlayer.Character, Vector)
+	return GeneralModule:DistanceFromCharacter(ContextVars.LocalPlayer.Character, Vector)
 end
 
 function GeneralModule:DistanceFromCamera(Vector: Vector3 | BasePart)
-	if not RunService:IsClient() then warn("Wth are U doing ?") return -1 end
-	if not ClientVars.Camera then return -1 end
+	if not RunService:IsClient() then warn("Attempt to use GeneralModule:DistanceFromCamera() as server!") return -1 end
+	if not ContextVars.Camera then return -1 end
 
-	return GeneralModule:FindDistance(ClientVars.Camera.CFrame.Position, Vector)
+	return GeneralModule:FindDistance(ContextVars.Camera.CFrame.Position, Vector)
 end
 
 function GeneralModule:SafeSetCoreGUI(CoreGUI: Enum.CoreGuiType, Enabled: boolean)
@@ -172,7 +156,9 @@ end
 
 function GeneralModule:MarkInstanceForDeletion(Object: Instance | { Object: any }, Time: number) -- silence stupid strict mode error because it wont recognise my tables
 	task.synchronize()
-
+	
+	warn("Custom implementation for handling instances marked for deletion is required!") -- add your own custom implementation or just use debris, whatever floats your boat.
+	
 	if typeof(Object) == "Instance" then
 		Object:SetAttribute("DebrisTime", Time)
 		Object:AddTag("Debris")
@@ -199,7 +185,7 @@ function GeneralModule:PlayTemporarySoundAtPosition(Sound: Sound, Position: Vect
 		task.synchronize()
 
 		local NewSound = Sound:Clone()
-		local SoundPart = GeneralModule:CreateEmptyPartAtPosition(Position, if IsClient then DebrisFolder.Client.Temporary else DebrisFolder.Server.Temporary)
+		local SoundPart = GeneralModule:CreateEmptyPartAtPosition(Position, DebrisFolder)
 
 		task.synchronize()
 
@@ -243,43 +229,6 @@ function GeneralModule:PlayTemporarySound(Sound: Sound, Settings: { PlaybackSpee
 	end)
 end
 
-function GeneralModule:CreateClippedWorldDecal(Part: BasePart, Position: Vector3, Texture: string, Size: Vector2, CustomRenderLayer: string?)
-	local Surface, Width, Height, RelativeWidth, RelativeHeight = WorldToGui:WorldPositionToGuiPosition(Part, Position)
-
-	if not Surface then return end
-
-	local FaceGUI = Part:FindFirstChild("FaceGUI".. Surface.Name ..(if CustomRenderLayer ~= nil then CustomRenderLayer else ""))
-
-	if not FaceGUI then
-		local NewFaceGUI = Instance.new("SurfaceGui")
-
-		FaceGUI = NewFaceGUI -- STUPID STRICT MODE 🤬
-		
-		NewFaceGUI.CanvasSize = Vector2.new(Width * 128, Height * 128)
-		NewFaceGUI.LightInfluence = 1
-		NewFaceGUI.Face = Surface
-		NewFaceGUI.ClipsDescendants = true
-		NewFaceGUI.MaxDistance = 500
-		NewFaceGUI.Name = "FaceGUI".. Surface.Name ..(if CustomRenderLayer ~= nil then CustomRenderLayer else "")
-
-		NewFaceGUI.Parent = Part
-	end
-	
-	local Decal = Instance.new("ImageLabel")
-	
-	Decal.Name = "Decal"
-	Decal.Image = Texture
-	Decal.BorderSizePixel = 0
-	Decal.BackgroundTransparency = 1
-	Decal.Size = UDim2.fromOffset(128 * Size.X, 128 * Size.Y)
-	Decal.AnchorPoint = Vector2.new(0.5, 0.5)
-	Decal.Position = UDim2.fromScale(RelativeWidth, RelativeHeight)
-	
-	Decal.Parent = FaceGUI
-	
-	return Decal
-end
-
 local function RaycastDebug(Origin: Vector3, EndPosition: Vector3, ResultPosition: Vector3)
 	local DebugBeam = script.RaycastDebug:Clone()
 	local Attachment0 = Instance.new("Attachment")
@@ -294,7 +243,7 @@ local function RaycastDebug(Origin: Vector3, EndPosition: Vector3, ResultPositio
 
 	Attachment0.Parent = workspace.Terrain
 	Attachment1.Parent = workspace.Terrain
-	DebugBeam.Parent = DebrisFolder.Client.Temporary
+	DebugBeam.Parent = DebrisFolder
 
 	GeneralModule:MarkInstanceForDeletion({DebugBeam, Attachment0, Attachment1}, 1)
 end
@@ -380,7 +329,7 @@ function GeneralModule:GetAverage(NumberTable: { number })
 	return Total / #NumberTable
 end
 
-function GeneralModule:RepeatFunctionForXSeconds(Seconds: number, Function: thread, Parameters: { any }, OverrideSafetyWait: boolean?)
+function GeneralModule:RepeatFunctionForXSeconds(Seconds: number, Function: thread, Parameters: { any }, OverrideSafetyWait: boolean?) -- Lunoxis' function, I don't know whether or not it is optimized
     local StartTime = os.clock()
               
     while StartTime + Seconds <= os.clock() do

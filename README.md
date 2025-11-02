@@ -1,7 +1,11 @@
 i'm probably never going to update this repository again, but for what it's worth, i have cleaned up GeneralModule.luau and removed it's game specific functions, so you can at least try to use it.\
-beware! you MUST implement a handler for GeneralModule:MarkInstanceForDeletion(), i'm simply too lazy to add the loop i used in tandem with it. just replace it with debris:AddItem() if you don't care.
+\
+beware! you MUST implement a handler for GeneralModule:MarkInstanceForDeletion(), i'm simply too lazy to add the loop i used in tandem with it. just replace it with debris:AddItem() if you don't care.\
+\
 don't let this be an indicator of my ability to program / format code.
-
+\
+\
+\
 ~~utility modules ive made and used for my games~~
 
 ~~some of them do contain functions that relate only to my game and will be useless / wont work for yours, feel free to remove those~~\

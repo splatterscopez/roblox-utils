@@ -1,5 +1,6 @@
-i'm probably never going to update this repository, but for what it's worth, i have cleaned up GeneralModule.luau within my games in terms of formatting and game specific functions\
-don't let this be an indicator of my ability to program / format code, it was just a quick module i made public
+i'm probably never going to update this repository again, but for what it's worth, i have cleaned up GeneralModule.luau and removed it's game specific functions, so you can at least try to use it.\
+beware! you MUST implement a handler for GeneralModule:MarkInstanceForDeletion(), i'm simply too lazy to add the loop i used in tandem with it. just replace it with debris:AddItem() if you don't care.
+don't let this be an indicator of my ability to program / format code.
 
 ~~utility modules ive made and used for my games~~
 
